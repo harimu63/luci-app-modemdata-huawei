@@ -23,5 +23,24 @@ int main(void)
     printf(" Status  : Development\n");
     printf("=====================================\n");
 
+    /* ---------- HTTP TEST ---------- */
+
+    http_response_t r;
+
+    if (http_get("http://192.168.11.50", &r) == HTTP_OK)
+    {
+        printf("\nHTTP GET SUCCESS\n");
+        printf("Status : %d\n", r.status);
+        printf("Body   : %s\n", r.body);
+
+        http_free(&r);
+    }
+    else
+    {
+        printf("\nHTTP GET FAILED\n");
+    }
+
+    /* ------------------------------- */
+
     return 0;
 }
