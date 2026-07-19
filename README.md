@@ -11,3 +11,4 @@ Compatible:
 Status:
 
 🚧 Development
+# luci-app-modemdata-huawei
