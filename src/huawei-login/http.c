@@ -1,12 +1,38 @@
 #include "http.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+static size_t write_callback(
+    void *ptr,
+    size_t size,
+    size_t nmemb,
+    void *userdata
+)
+{
+    http_response_t *resp=userdata;
+
+    size_t total=size*nmemb;
+
+    char *tmp=realloc(resp->body,resp->size+total+1);
+
+    if(!tmp)
+        return 0;
+
+    resp->body=tmp;
+
+    memcpy(resp->body+resp->size,ptr,total);
+
+    resp->size+=total;
+
+    resp->body[resp->size]=0;
+
+    return total;
+}
+
 int http_init(void)
 {
-    return HTTP_OK;
+    return curl_global_init(CURL_GLOBAL_DEFAULT);
 }
 
 int http_get(
@@ -14,49 +40,46 @@ int http_get(
     http_response_t *resp
 )
 {
-    (void)url;
+    memset(resp,0,sizeof(*resp));
 
-    memset(resp,0,sizeof(http_response_t));
+    CURL *curl=curl_easy_init();
 
-    resp->status=200;
+    if(!curl)
+        return -1;
 
-    resp->body=strdup("<response/>");
+    curl_easy_setopt(curl,CURLOPT_URL,url);
 
-    return HTTP_OK;
+    curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_callback);
+
+    curl_easy_setopt(curl,CURLOPT_WRITEDATA,resp);
+
+    CURLcode ret=curl_easy_perform(curl);
+
+    if(ret!=CURLE_OK)
+    {
+        curl_easy_cleanup(curl);
+
+        return -1;
+    }
+
+    curl_easy_getinfo(
+        curl,
+        CURLINFO_RESPONSE_CODE,
+        &resp->status
+    );
+
+    curl_easy_cleanup(curl);
+
+    return 0;
 }
 
-int http_post(
-    const char *url,
-    const char *content,
-    const char *token,
-    const char *cookie,
+void http_free(
     http_response_t *resp
 )
 {
-    (void)url;
-    (void)content;
-    (void)token;
-    (void)cookie;
+    free(resp->body);
 
-    memset(resp,0,sizeof(http_response_t));
+    resp->body=NULL;
 
-    resp->status=200;
-
-    resp->body=strdup("<response/>");
-
-    return HTTP_OK;
-}
-
-void http_free(http_response_t *resp)
-{
-    if(resp->body)
-        free(resp->body);
-
-    if(resp->cookie)
-        free(resp->cookie);
-
-    if(resp->token)
-        free(resp->token);
-
-    memset(resp,0,sizeof(http_response_t));
+    resp->size=0;
 }
