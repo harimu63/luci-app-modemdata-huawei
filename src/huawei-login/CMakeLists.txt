@@ -4,6 +4,9 @@ project(modemdata-huawei C)
 
 set(CMAKE_C_STANDARD 99)
 
+find_package(OpenSSL REQUIRED)
+find_package(CURL REQUIRED)
+
 add_executable(modemdata-huawei
     main.c
     http.c
@@ -15,6 +18,7 @@ add_executable(modemdata-huawei
 )
 
 target_link_libraries(modemdata-huawei
-    ssl
-    crypto
+    CURL::libcurl
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
