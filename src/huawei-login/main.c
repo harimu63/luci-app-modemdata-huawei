@@ -1,7 +1,21 @@
 #include <stdio.h>
 
-int main(int argc, char *argv[])
+#include "http.h"
+#include "xml.h"
+#include "scram.h"
+#include "api.h"
+#include "session.h"
+#include "utils.h"
+
+int main(void)
 {
+    http_init();
+    xml_init();
+    scram_init();
+    api_init();
+    session_init();
+    utils_init();
+
     printf("=====================================\n");
     printf(" Huawei Modem Backend\n");
     printf(" Version : 0.1.0\n");
